@@ -4,3 +4,15 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
+
+# Raw source media — large originals; optimized web versions live in assets/.
+# Kept on disk but not committed/deployed.
+/art/
+/videos/
+/header/
+/music/
+*.zip
+*.MOV
+
+# Don't publish copyrighted audio
+assets/audio/track.m4a

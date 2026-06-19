@@ -10,6 +10,8 @@
   <meta property="og:description" content="Studio, films and stories — junofrompluto.com">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://junofrompluto.com/">
+  <meta property="og:image" content="https://junofrompluto.com/assets/img/title.jpg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1585,6 +1587,45 @@
         user-select: none;
       }
     }
+    /* ---- reel play icon ---- */
+    .reel-item .reel-play {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.9);
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 1px solid var(--accent); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; padding-left: 3px; z-index: 2; pointer-events: none;
+      background: rgba(0,0,0,0.35); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity 0.4s, transform 0.4s; }
+    .reel-item:hover .reel-play { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+
+    /* ---- video lightbox ---- */
+    .reel-modal {
+      position: fixed; inset: 0; z-index: 10000; display: none;
+      align-items: center; justify-content: center; padding: 24px;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);
+      opacity: 0; transition: opacity 0.35s; }
+    .reel-modal.open { display: flex; opacity: 1; }
+    .reel-modal__inner { width: min(1100px, 100%); }
+    .reel-modal__bar { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+    .reel-modal__title { color: var(--accent); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+    .reel-modal__title small { color: #777; display: block; font-size: 10px; letter-spacing: 2px; margin-top: 4px; }
+    .reel-modal__close { background: none; border: 1px solid #444; color: #aaa; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%; font-size: 14px; transition: 0.25s; flex: none; }
+    .reel-modal__close:hover { border-color: var(--accent); color: var(--accent); }
+    .reel-modal video { width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #1a1a1a; }
+
+    /* ---- ambient music toggle ---- */
+    .music-toggle {
+      position: fixed; right: 20px; bottom: 20px; z-index: 9500;
+      width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+      background: rgba(0,0,0,0.55); border: 1px solid var(--accent); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+      backdrop-filter: blur(6px); transition: transform 0.25s, box-shadow 0.25s; }
+    .music-toggle:hover { transform: scale(1.08); box-shadow: 0 0 16px var(--accent-glow); }
+    .music-toggle .eq { display: none; }
+    .music-toggle.playing .eq { display: inline; }
+    .music-toggle.playing .ic { display: none; }
+    @media (max-width: 640px) { .music-toggle { width: 40px; height: 40px; bottom: 16px; right: 16px; } }
   </style>
 </head>
 <body>
@@ -1605,13 +1646,13 @@
       Until you add videos, the dark gradient fallback is shown.
       =============================================
     -->
-    <video class="hero-video hero-video-primary" autoplay muted loop playsinline>
-      <source src="hero-video.mp4" type="video/mp4">
+    <video class="hero-video hero-video-primary" autoplay muted loop playsinline poster="assets/img/title.jpg">
+      <source src="assets/video/header.mp4" type="video/mp4">
     </video>
     <video class="hero-video hero-video-alt" muted loop playsinline>
-      <source src="hero-video-alt.mp4" type="video/mp4">
+      <source src="assets/video/header.mp4" type="video/mp4">
     </video>
-    <div class="hero-fallback"></div>
+    <div class="hero-fallback" style="background-image:linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.75)),url('assets/img/deepspace.jpg');background-size:cover;background-position:center;"></div>
 
     <!-- Cinematic overlay stack -->
     <div class="hero-overlay"></div>
@@ -1945,7 +1986,7 @@
     <div class="spacer"></div>
 
     <!-- ABOUT -->
-    <div class="section section--gradient">
+    <div class="section section--gradient" style="background-image:linear-gradient(rgba(2,2,4,0.82),rgba(2,2,4,0.93)),url('assets/img/cosmic.jpg');background-size:cover;background-position:center;">
       <div class="section-inner fade-in">
         <div class="section-label">// About</div>
         <h2 class="section-heading">I tell<br>stories.</h2>
@@ -1964,36 +2005,32 @@
           A curated selection of recent and notable projects.
         </p>
         <div class="reel-grid">
-          <!--
-            =============================================
-            YOUR REEL ITEMS
-            Replace these placeholders with your project thumbnails.
-            Add an <img> tag inside each .reel-item:
-              <img src="your-thumbnail.jpg" alt="Project Name">
-            =============================================
-          -->
-          <div class="reel-item reel-placeholder">
-            <div class="reel-info"><h4>Project One</h4><p>Feature Film / 2025</p></div>
-            <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          <div class="reel-item" onclick="openReel('assets/reel/305fishkill.mp4','305 Fishkill','Teaser')">
+            <div class="reel-info"><h4>305 Fishkill</h4><p>Teaser</p></div>
+            <img src="assets/reel/305fishkill.jpg" alt="305 Fishkill" loading="lazy">
+            <div class="reel-play" aria-hidden="true">▶</div>
           </div>
-          <div class="reel-item reel-placeholder">
-            <div class="reel-info"><h4>Project Two</h4><p>Short Film / 2024</p></div>
-            <div style="width:100%;height:100%;background:#0e0e0e;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          <div class="reel-item" onclick="openReel('assets/reel/bentspoons.mp4','Bent Spoons','Trailer')">
+            <div class="reel-info"><h4>Bent Spoons</h4><p>Trailer</p></div>
+            <img src="assets/reel/bentspoons.jpg" alt="Bent Spoons" loading="lazy">
+            <div class="reel-play" aria-hidden="true">▶</div>
           </div>
-          <div class="reel-item reel-placeholder">
-            <div class="reel-info"><h4>Project Three</h4><p>Music Video / 2024</p></div>
-            <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          <div class="reel-item" onclick="openReel('assets/reel/bestfriendai.mp4','BestFriendAI','Short Film / 2024')">
+            <div class="reel-info"><h4>BestFriendAI</h4><p>Short Film / 2024</p></div>
+            <img src="assets/reel/bestfriendai.jpg" alt="BestFriendAI" loading="lazy">
+            <div class="reel-play" aria-hidden="true">▶</div>
           </div>
-          <div class="reel-item reel-placeholder">
-            <div class="reel-info"><h4>Project Four</h4><p>Documentary / 2023</p></div>
-            <div style="width:100%;height:100%;background:#0e0e0e;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          <div class="reel-item" onclick="openReel('assets/reel/lovedeathrobots.mp4','Love, Death &amp; Robots','Sanchez')">
+            <div class="reel-info"><h4>Love, Death &amp; Robots</h4><p>Sanchez</p></div>
+            <img src="assets/reel/lovedeathrobots.jpg" alt="Love, Death &amp; Robots — Sanchez" loading="lazy">
+            <div class="reel-play" aria-hidden="true">▶</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- CURRENT PROJECT -->
-    <div class="section section--subtle">
+    <div class="section section--subtle" style="background-image:linear-gradient(rgba(2,2,4,0.84),rgba(2,2,4,0.93)),url('assets/img/ringed.jpg');background-size:cover;background-position:center;">
       <div class="section-inner fade-in">
         <div class="section-label">// Now</div>
         <h2 class="section-heading">Something<br>is coming.</h2>
@@ -2004,7 +2041,7 @@
     </div>
 
     <!-- CONTACT -->
-    <div class="section section--dark">
+    <div class="section section--dark" style="background-image:linear-gradient(rgba(0,0,0,0.82),rgba(0,0,0,0.93)),url('assets/img/astronaut.jpg');background-size:cover;background-position:center;">
       <div class="section-inner fade-in">
         <div class="section-label">// Contact</div>
         <h2 class="section-heading">Let's<br>work.</h2>
@@ -2587,5 +2624,49 @@
     window.addEventListener('resize', setVH);
   </script>
 
+  <!-- ========== REEL LIGHTBOX ========== -->
+  <div class="reel-modal" id="reelModal" aria-hidden="true">
+    <div class="reel-modal__inner">
+      <div class="reel-modal__bar">
+        <div class="reel-modal__title"><span id="reelModalTitle">—</span><small id="reelModalMeta"></small></div>
+        <button class="reel-modal__close" onclick="closeReel()" aria-label="Close">✕</button>
+      </div>
+      <video id="reelModalVideo" controls playsinline preload="none"></video>
+    </div>
+  </div>
+
+  <!-- ========== AMBIENT MUSIC ========== -->
+  <button class="music-toggle" id="musicToggle" aria-label="Toggle music" title="Music"><span class="ic">♪</span><span class="eq">❚❚</span></button>
+
+  <script>
+    function openReel(src, title, meta){
+      var m = document.getElementById('reelModal'), v = document.getElementById('reelModalVideo');
+      document.getElementById('reelModalTitle').textContent = title;
+      document.getElementById('reelModalMeta').textContent = meta;
+      v.src = src; m.classList.add('open'); m.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      v.play().catch(function(){});
+    }
+    function closeReel(){
+      var m = document.getElementById('reelModal'), v = document.getElementById('reelModalVideo');
+      v.pause(); v.removeAttribute('src'); v.load();
+      m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('reelModal').addEventListener('click', function(e){ if(e.target.id==='reelModal') closeReel(); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeReel(); });
+
+    /* ambient music — user-initiated (off by default). Uses the royalty-free
+       sea-waves bed; swap src to a licensed track if you have the rights. */
+    (function(){
+      var btn = document.getElementById('musicToggle');
+      var audio = new Audio('assets/audio/waves.m4a');
+      audio.loop = true; audio.volume = 0.5;
+      btn.addEventListener('click', function(){
+        if(audio.paused){ audio.play().then(function(){ btn.classList.add('playing'); }).catch(function(){}); }
+        else { audio.pause(); btn.classList.remove('playing'); }
+      });
+    })();
+  </script>
 </body>
 </html>
