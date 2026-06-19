@@ -264,6 +264,11 @@
       transition: background 0.6s ease;
     }
 
+    /* Stacking: video must sit ABOVE the fallback (DOM order alone put the
+       fallback on top, hiding the title video) */
+    .hero-fallback { z-index: 0; }
+    .hero-video { z-index: 1; }
+
     /* Video crossfade */
     .hero-video-alt {
       opacity: 0;
@@ -1656,7 +1661,7 @@
     <video class="hero-video hero-video-alt" muted loop playsinline>
       <source src="assets/video/header.mp4" type="video/mp4">
     </video>
-    <div class="hero-fallback" style="background-image:linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.75)),url('assets/img/deepspace.jpg');background-size:cover;background-position:center;"></div>
+    <div class="hero-fallback" style="background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.3)),url('assets/img/title.jpg');background-size:cover;background-position:center;"></div>
 
     <!-- Cinematic overlay stack -->
     <div class="hero-overlay"></div>
@@ -2147,6 +2152,20 @@
     const heroContainer = document.getElementById('heroContainer');
     const primaryVideo = document.querySelector('.hero-video-primary');
     const altVideo = document.querySelector('.hero-video-alt');
+
+    /* Force the header title video to autoplay (muted), with retries in case
+       the browser defers autoplay until first interaction. */
+    if (primaryVideo) {
+      primaryVideo.muted = true;
+      primaryVideo.setAttribute('muted', '');
+      const tryPlay = () => { const p = primaryVideo.play(); if (p) p.catch(() => {}); };
+      tryPlay();
+      primaryVideo.addEventListener('loadeddata', tryPlay, { once: true });
+      primaryVideo.addEventListener('canplay', tryPlay, { once: true });
+      window.addEventListener('load', tryPlay, { once: true });
+      ['click', 'touchstart', 'keydown', 'scroll'].forEach(evt =>
+        document.addEventListener(evt, tryPlay, { once: true, passive: true }));
+    }
 
     /* =============================================
        TERMINAL COMMAND SYSTEM
