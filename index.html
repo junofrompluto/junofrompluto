@@ -1631,7 +1631,12 @@
     .music-toggle .eq { display: none; }
     .music-toggle.playing .eq { display: inline; }
     .music-toggle.playing .ic { display: none; }
-    @media (max-width: 640px) { .music-toggle { width: 40px; height: 40px; bottom: 16px; right: 16px; } }
+    /* lift the music button above the bottom terminal bar on mobile */
+    @media (max-width: 768px) {
+      .music-toggle { width: 40px; height: 40px; bottom: 86px; right: 14px; }
+      .reel-modal { padding: 14px; }
+      .reel-modal__title { font-size: 11px; }
+    }
     /* portrait: show the full title (no side-crop) */
     @media (orientation: portrait) and (max-width: 820px) {
       .hero video { min-width: 0; min-height: 0; width: 100%; height: auto; }
@@ -1662,7 +1667,7 @@
     <video class="hero-video hero-video-alt" muted loop playsinline>
       <source src="assets/video/header.mp4" type="video/mp4">
     </video>
-    <div class="hero-fallback" style="background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.3)),url('assets/img/title.jpg');background-size:cover;background-position:center;"></div>
+    <div class="hero-fallback" style="background-image:linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.72)),url('assets/img/deepspace.jpg');background-size:cover;background-position:center;"></div>
 
     <!-- Cinematic overlay stack -->
     <div class="hero-overlay"></div>
