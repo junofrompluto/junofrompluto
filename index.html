@@ -1,0 +1,2585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOU CASTRO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================
+       RESET & BASE
+    ============================================ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #000000;
+      --text: #eeeeee;
+      --text-dim: #666666;
+      --accent: #d4e5c1;
+      --accent-glow: rgba(212, 229, 193, 0.3);
+      --terminal-bg: rgba(6, 8, 4, 0.96);
+      --terminal-border: #2a2e24;
+      --red: #e74c3c;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ============================================
+       BOOT SEQUENCE SCREEN
+    ============================================ */
+    .boot-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease;
+    }
+
+    .boot-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .boot-text {
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 2.4;
+    }
+
+    .boot-text .line {
+      opacity: 0;
+      animation: bootLine 0.3s forwards;
+    }
+
+    @keyframes bootLine {
+      to { opacity: 1; }
+    }
+
+    .boot-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--accent);
+      animation: blink 0.6s step-end infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* ============================================
+       VIDEO HERO - FULLSCREEN BACKGROUND
+    ============================================ */
+    .hero {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hero video,
+    .hero .hero-fallback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+    }
+
+    .hero-fallback {
+      background: radial-gradient(ellipse at center, #0a0a0a 0%, #000 70%);
+      width: 100%;
+      height: 100%;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    /* ============================================
+       CINEMATIC OVERLAYS
+    ============================================ */
+
+    /* Film Grain */
+    .hero-grain {
+      position: absolute;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      z-index: 2;
+      opacity: 0.06;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      animation: grain 0.8s steps(6) infinite;
+    }
+
+    @keyframes grain {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-5%, -10%); }
+      20% { transform: translate(-15%, 5%); }
+      30% { transform: translate(7%, -25%); }
+      40% { transform: translate(-5%, 25%); }
+      50% { transform: translate(-15%, 10%); }
+      60% { transform: translate(15%, 0%); }
+      70% { transform: translate(0%, 15%); }
+      80% { transform: translate(3%, 35%); }
+      90% { transform: translate(-10%, 10%); }
+    }
+
+    /* Vignette */
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 30%,
+        rgba(0, 0, 0, 0.4) 70%,
+        rgba(0, 0, 0, 0.85) 100%
+      );
+    }
+
+    /* Color grade */
+    .hero-colorgrade {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(10, 15, 8, 0.2) 0%,
+        transparent 40%,
+        transparent 60%,
+        rgba(5, 8, 12, 0.25) 100%
+      );
+      mix-blend-mode: multiply;
+    }
+
+    /* Scanlines */
+    .hero-scanlines {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0.04;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.5) 2px,
+        rgba(0, 0, 0, 0.5) 4px
+      );
+    }
+
+    /* CRT flicker overlay */
+    .hero-flicker {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      animation: crtFlicker 4s infinite;
+    }
+
+    @keyframes crtFlicker {
+      0%, 100% { opacity: 0; }
+      3% { opacity: 0.03; background: rgba(212, 229, 193, 0.02); }
+      4% { opacity: 0; }
+      48% { opacity: 0; }
+      49% { opacity: 0.02; background: rgba(255, 255, 255, 0.01); }
+      50% { opacity: 0; }
+      92% { opacity: 0; }
+      93% { opacity: 0.04; background: rgba(212, 229, 193, 0.03); }
+      94% { opacity: 0; }
+    }
+
+    /* Blur state */
+    .hero video,
+    .hero .hero-fallback {
+      transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hero.blurred video,
+    .hero.blurred .hero-fallback {
+      filter: blur(8px) brightness(0.4);
+    }
+
+    .hero.blurred .hero-overlay {
+      background: rgba(0, 0, 0, 0.7);
+      transition: background 0.6s ease;
+    }
+
+    /* Video crossfade */
+    .hero-video-alt {
+      opacity: 0;
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hero-video-alt.active { opacity: 1; }
+
+    .hero-video-primary {
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hero-video-primary.dimmed { opacity: 0; }
+
+    /* ============================================
+       HEADER / NAVIGATION
+    ============================================ */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .header.visible { opacity: 1; }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nav-bracket {
+      width: 22px;
+      height: 22px;
+      border: 1.5px solid var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-bracket::after {
+      content: '';
+      width: 5px;
+      height: 5px;
+      background: var(--red);
+      position: absolute;
+    }
+
+    .nav-bracket:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .nav-link {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover { color: var(--accent); }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after { width: 100%; }
+
+    .logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .icon-btn {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+      background: none;
+      border: none;
+      color: var(--text);
+    }
+
+    .icon-btn:hover {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    /* ============================================
+       GLITCH TEXT EFFECT
+    ============================================ */
+    .glitch {
+      position: relative;
+      animation: glitchShift 8s infinite;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      clip-path: inset(0 0 0 0);
+    }
+
+    .glitch::before {
+      color: rgba(212, 229, 193, 0.8);
+      animation: glitchTop 3s infinite;
+      z-index: -1;
+    }
+
+    .glitch::after {
+      color: rgba(231, 76, 60, 0.6);
+      animation: glitchBottom 4s infinite;
+      z-index: -2;
+    }
+
+    @keyframes glitchShift {
+      0%, 95%, 100% { transform: translate(0); }
+      96% { transform: translate(-2px, 1px); }
+      97% { transform: translate(2px, -1px); }
+      98% { transform: translate(-1px, 0px); }
+    }
+
+    @keyframes glitchTop {
+      0%, 92%, 100% { clip-path: inset(0 0 100% 0); }
+      93% { clip-path: inset(20% 0 40% 0); transform: translate(-3px); }
+      94% { clip-path: inset(60% 0 10% 0); transform: translate(3px); }
+      95% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+    }
+
+    @keyframes glitchBottom {
+      0%, 88%, 100% { clip-path: inset(100% 0 0 0); }
+      89% { clip-path: inset(40% 0 30% 0); transform: translate(2px); }
+      90% { clip-path: inset(10% 0 60% 0); transform: translate(-2px); }
+      91% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+    }
+
+    /* ============================================
+       CENTER PROMPT (landing state)
+    ============================================ */
+    .center-prompt {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .center-prompt.visible { opacity: 1; }
+
+    .center-prompt.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .prompt-title {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: 12px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .prompt-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    .prompt-hint {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: pulseHint 3s ease-in-out infinite;
+    }
+
+    .prompt-hint span {
+      color: var(--accent);
+    }
+
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* ============================================
+       INTERACTIVE TERMINAL
+    ============================================ */
+    .terminal {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      width: 600px;
+      max-width: calc(100% - 48px);
+      opacity: 0;
+      transition: opacity 0.6s ease, transform 0.4s ease;
+    }
+
+    .terminal.visible {
+      opacity: 1;
+    }
+
+    .terminal-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--terminal-bg);
+      border: 1px solid var(--terminal-border);
+      padding: 12px 16px;
+      gap: 8px;
+      backdrop-filter: blur(20px);
+    }
+
+    .terminal-prefix {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      caret-color: var(--accent);
+    }
+
+    .terminal-input::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* Terminal response area */
+    .terminal-output {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-bottom: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--terminal-border) transparent;
+    }
+
+    .terminal-response {
+      background: var(--terminal-bg);
+      border: 1px solid var(--terminal-border);
+      padding: 20px;
+      margin-bottom: 2px;
+      backdrop-filter: blur(20px);
+      animation: termFadeIn 0.4s ease;
+    }
+
+    @keyframes termFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .term-cmd {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .term-cmd span {
+      color: var(--accent);
+    }
+
+    .term-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .term-text {
+      font-size: 12px;
+      line-height: 2;
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    .term-text a {
+      color: var(--accent);
+      border-bottom: 1px solid rgba(212, 229, 193, 0.3);
+      transition: border-color 0.2s;
+    }
+
+    .term-text a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    .term-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .term-list li {
+      font-size: 11px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    .term-list li .label {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .term-list li .meta {
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+
+    .term-divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--accent), transparent);
+      margin: 12px 0;
+    }
+
+    .term-hint {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      margin-top: 12px;
+      opacity: 0.6;
+    }
+
+    /* Typing animation for responses */
+    .type-in {
+      overflow: hidden;
+      animation: typeReveal 0.6s steps(30) forwards;
+    }
+
+    @keyframes typeReveal {
+      from { max-height: 0; opacity: 0; }
+      to { max-height: 800px; opacity: 1; }
+    }
+
+    /* ============================================
+       CONSOLE PANEL (FILMOGRAPHY OVERLAY)
+    ============================================ */
+    .console-panel {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      width: calc(100% - 100px);
+      max-width: 1100px;
+      max-height: calc(100vh - 120px);
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .console-panel.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .console-header {
+      background: var(--accent);
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .console-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .console-close {
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: opacity 0.2s;
+      background: none;
+      border: none;
+      color: #1a1a1a;
+      font-family: var(--font-mono);
+    }
+
+    .console-close:hover { opacity: 0.6; }
+
+    .console-body {
+      background: var(--terminal-bg);
+      border: 1px solid var(--terminal-border);
+      border-top: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .console-subheader {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .console-count {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .console-count span { color: var(--accent); }
+
+    .console-divider {
+      height: 2px;
+      background: linear-gradient(to right, var(--accent), transparent);
+      margin-bottom: 4px;
+    }
+
+    .console-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--terminal-border);
+      margin-bottom: 4px;
+    }
+
+    .console-columns {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 24px;
+      min-height: 400px;
+    }
+
+    .console-list {
+      list-style: none;
+    }
+
+    .console-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-left: 2px solid transparent;
+    }
+
+    .console-list li:hover,
+    .console-list li.active {
+      background: rgba(212, 229, 193, 0.05);
+      border-left-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .console-list li .num {
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    .console-list li.active .num {
+      color: var(--accent);
+    }
+
+    .console-detail {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .console-detail-text {
+      font-size: 11px;
+      line-height: 2;
+      color: var(--text-dim);
+      text-align: center;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    .credit-list {
+      width: 100%;
+      display: none;
+    }
+
+    .credit-list.active {
+      display: block;
+    }
+
+    .credit-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(42, 46, 36, 0.6);
+      gap: 12px;
+    }
+
+    .credit-item:last-child {
+      border-bottom: none;
+    }
+
+    .credit-info {
+      flex: 1;
+    }
+
+    .credit-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .credit-role {
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .credit-meta {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    .credit-year {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      white-space: nowrap;
+      padding-top: 2px;
+    }
+
+    .credit-badge {
+      display: inline-block;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .credit-badge.upcoming {
+      border-color: var(--red);
+      color: var(--red);
+    }
+      font-weight: 300;
+      padding: 20px;
+    }
+
+    .console-watermark {
+      opacity: 0.03;
+      width: 200px;
+      height: 200px;
+    }
+
+    .console-footer {
+      background: var(--accent);
+      color: #1a1a1a;
+      text-align: right;
+      padding: 6px 14px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ============================================
+       VALUES OVERLAY (PHILOSOPHY)
+    ============================================ */
+    .values-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .values-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .values-content {
+      max-width: 700px;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .values-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 48px;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      text-align: left;
+    }
+
+    .value-item {
+      padding: 20px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .value-item h3 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .value-item p {
+      font-size: 11px;
+      line-height: 1.9;
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    /* ============================================
+       SCROLL CONTENT
+    ============================================ */
+    .content {
+      position: relative;
+      z-index: 10;
+    }
+
+    .spacer {
+      height: 100vh;
+    }
+
+    .section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 40px;
+      position: relative;
+    }
+
+    .section-inner {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    .section-heading {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      line-height: 1.15;
+      margin-bottom: 24px;
+    }
+
+    .section-text {
+      font-size: 13px;
+      line-height: 2;
+      color: var(--text-dim);
+      max-width: 560px;
+      font-weight: 300;
+    }
+
+    .section--gradient {
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 25%, #0a0a0a 100%);
+    }
+
+    .section--dark { background: var(--bg); }
+    .section--subtle { background: #050505; }
+
+    /* ============================================
+       REEL SECTION
+    ============================================ */
+    .reel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2px;
+      margin-top: 32px;
+    }
+
+    .reel-item {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #111;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .reel-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 60%);
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .reel-item:hover::before { opacity: 1; }
+
+    .reel-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reel-item:hover img {
+      transform: scale(1.05);
+    }
+
+    .reel-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      z-index: 2;
+      transform: translateY(10px);
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .reel-item:hover .reel-info {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reel-info h4 {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .reel-info p {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* Placeholder reel items */
+    .reel-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ============================================
+       FOOTER
+    ============================================ */
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 40px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      background: #000;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ============================================
+       SCROLL ANIMATIONS
+    ============================================ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================
+       CUSTOM SCROLLBAR
+    ============================================ */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--terminal-border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ============================================
+       AMBIENT CORNER ELEMENTS
+    ============================================ */
+    .corner-tag {
+      position: fixed;
+      z-index: 60;
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .corner-tag.visible { opacity: 0.4; }
+
+    .corner-tl { top: 60px; left: 28px; }
+    .corner-tr { top: 60px; right: 28px; text-align: right; }
+    .corner-bl { bottom: 100px; left: 28px; }
+    .corner-br { bottom: 100px; right: 28px; text-align: right; }
+
+    /* ============================================
+       MOBILE HAMBURGER MENU
+    ============================================ */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+      z-index: 110;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(3px, 3px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(3px, -3px);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      background: rgba(0, 0, 0, 0.95);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .mobile-menu.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-menu .mobile-nav-link {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.3s;
+      color: var(--text);
+    }
+
+    .mobile-menu .mobile-nav-link:hover,
+    .mobile-menu .mobile-nav-link:active {
+      color: var(--accent);
+    }
+
+    /* ============================================
+       RESPONSIVE — TABLET (max-width: 768px)
+    ============================================ */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+      }
+
+      .logo {
+        font-size: 14px;
+        letter-spacing: 4px;
+        position: relative;
+        left: auto;
+        transform: none;
+      }
+
+      .nav-left {
+        gap: 12px;
+      }
+
+      /* Hide desktop nav links, show hamburger */
+      .nav-left .nav-link {
+        display: none;
+      }
+
+      .hamburger {
+        display: flex;
+      }
+
+      .mobile-menu {
+        display: flex;
+      }
+
+      .nav-right {
+        gap: 10px;
+      }
+
+      .prompt-title {
+        font-size: 28px;
+        letter-spacing: 6px;
+      }
+
+      .prompt-sub {
+        font-size: 10px;
+        letter-spacing: 2px;
+      }
+
+      .prompt-hint {
+        font-size: 9px;
+      }
+
+      /* Terminal */
+      .terminal {
+        width: calc(100% - 32px);
+        bottom: 24px;
+      }
+
+      .terminal-prefix {
+        font-size: 11px;
+      }
+
+      .terminal-input {
+        font-size: 14px; /* Prevents iOS zoom on focus */
+      }
+
+      .terminal-input-wrap {
+        padding: 10px 12px;
+      }
+
+      .terminal-response {
+        padding: 14px;
+      }
+
+      .term-title {
+        font-size: 13px;
+        letter-spacing: 2px;
+      }
+
+      .term-text {
+        font-size: 11px;
+        line-height: 1.8;
+      }
+
+      .term-list li {
+        font-size: 10px;
+        padding: 5px 0;
+      }
+
+      /* Console panel (filmography) */
+      .console-panel {
+        width: calc(100% - 16px);
+        top: 56px;
+        max-height: calc(100vh - 72px);
+      }
+
+      .console-body {
+        padding: 16px;
+      }
+
+      .console-subheader {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .console-columns {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        min-height: auto;
+      }
+
+      /* Show detail pane below the list on mobile instead of hiding it */
+      .console-detail {
+        border-top: 1px solid var(--terminal-border);
+        padding-top: 12px;
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      .console-detail-text {
+        min-height: 100px;
+      }
+
+      .console-list li {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      .credit-item {
+        padding: 10px 0;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .credit-title {
+        font-size: 12px;
+      }
+
+      .credit-year {
+        font-size: 10px;
+      }
+
+      /* Values overlay */
+      .values-content {
+        padding: 40px 24px;
+        max-width: 100%;
+      }
+
+      .values-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .value-item p {
+        font-size: 11px;
+        line-height: 1.8;
+      }
+
+      /* Sections */
+      .section {
+        padding: 60px 24px;
+        min-height: auto;
+      }
+
+      .section-heading {
+        font-size: 28px;
+        letter-spacing: 2px;
+      }
+
+      .section-label {
+        font-size: 9px;
+        letter-spacing: 3px;
+        margin-bottom: 16px;
+      }
+
+      .section-text {
+        font-size: 12px;
+        line-height: 1.8;
+      }
+
+      /* Reel grid */
+      .reel-grid {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+
+      /* Show reel info by default on mobile (no hover) */
+      .reel-item::before {
+        opacity: 1;
+      }
+
+      .reel-info {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Corner tags */
+      .corner-tag { display: none; }
+
+      /* Footer */
+      .footer {
+        padding: 24px 20px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .footer-links {
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+
+    /* ============================================
+       RESPONSIVE — SMALL PHONE (max-width: 420px)
+    ============================================ */
+    @media (max-width: 420px) {
+      .header {
+        padding: 12px 16px;
+      }
+
+      .logo {
+        font-size: 12px;
+        letter-spacing: 3px;
+      }
+
+      .prompt-title {
+        font-size: 22px;
+        letter-spacing: 4px;
+      }
+
+      .prompt-sub {
+        font-size: 9px;
+        margin-bottom: 24px;
+      }
+
+      .terminal-prefix {
+        font-size: 10px;
+      }
+
+      /* Shorten prefix on very small screens */
+      .terminal-prefix-short {
+        display: inline;
+      }
+
+      .terminal-prefix-full {
+        display: none;
+      }
+
+      .console-panel {
+        width: calc(100% - 8px);
+      }
+
+      .console-header {
+        padding: 6px 10px;
+        font-size: 9px;
+      }
+
+      .section-heading {
+        font-size: 24px;
+      }
+
+      .section {
+        padding: 48px 16px;
+      }
+
+      .values-content {
+        padding: 32px 16px;
+      }
+
+      .values-title {
+        margin-bottom: 32px;
+      }
+    }
+
+    /* ============================================
+       TOUCH DEVICE ENHANCEMENTS
+    ============================================ */
+    @media (hover: none) and (pointer: coarse) {
+      /* Always show reel info since no hover available */
+      .reel-item::before { opacity: 1; }
+      .reel-info { opacity: 1; transform: translateY(0); }
+
+      /* Larger touch targets for nav */
+      .nav-bracket {
+        width: 28px;
+        height: 28px;
+      }
+
+      .icon-btn {
+        width: 24px;
+        height: 24px;
+        padding: 2px;
+      }
+
+      /* Better tap targets for console list */
+      .console-list li {
+        padding: 12px;
+        min-height: 44px;
+      }
+
+      /* Prevent text selection on interactive elements */
+      .nav-link, .console-list li, .hamburger {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== BOOT SEQUENCE ========== -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-text" id="bootText"></div>
+  </div>
+
+  <!-- ========== FULLSCREEN VIDEO HERO ========== -->
+  <div class="hero" id="heroContainer">
+    <!--
+      =============================================
+      YOUR VIDEOS GO HERE
+      Replace the video sources below with your own .mp4 files:
+      - hero-video.mp4 = main background reel
+      - hero-video-alt.mp4 = shown when Philosophy opens
+      Until you add videos, the dark gradient fallback is shown.
+      =============================================
+    -->
+    <video class="hero-video hero-video-primary" autoplay muted loop playsinline>
+      <source src="hero-video.mp4" type="video/mp4">
+    </video>
+    <video class="hero-video hero-video-alt" muted loop playsinline>
+      <source src="hero-video-alt.mp4" type="video/mp4">
+    </video>
+    <div class="hero-fallback"></div>
+
+    <!-- Cinematic overlay stack -->
+    <div class="hero-overlay"></div>
+    <div class="hero-colorgrade"></div>
+    <div class="hero-grain"></div>
+    <div class="hero-scanlines"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-flicker"></div>
+  </div>
+
+  <!-- ========== AMBIENT CORNER TAGS ========== -->
+  <div class="corner-tag corner-tl" id="cornerTL">SYS:ACTIVE</div>
+  <div class="corner-tag corner-tr" id="cornerTR">V1.0</div>
+  <div class="corner-tag corner-bl" id="cornerBL">DIR / WRITER / PRODUCER</div>
+  <div class="corner-tag corner-br" id="cornerBR">LOS ANGELES, CA</div>
+
+  <!-- ========== HEADER / NAV ========== -->
+  <header class="header" id="mainHeader">
+    <nav class="nav-left">
+      <div class="nav-bracket" onclick="toggleHome()"></div>
+      <span class="nav-link" onclick="openConsole()">Filmography</span>
+      <span class="nav-link" onclick="openValues()">Philosophy</span>
+      <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+
+    <div class="logo"><span class="glitch" data-text="LOU CASTRO">LOU CASTRO</span></div>
+
+    <div class="nav-right">
+      <button class="icon-btn" onclick="toggleAudio()" aria-label="Toggle audio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path class="audio-waves" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
+      <button class="icon-btn" onclick="closeAll()" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========== MOBILE MENU OVERLAY ========== -->
+  <div class="mobile-menu" id="mobileMenu">
+    <span class="mobile-nav-link" onclick="openConsole(); closeMobileMenu();">Filmography</span>
+    <span class="mobile-nav-link" onclick="openValues(); closeMobileMenu();">Philosophy</span>
+    <span class="mobile-nav-link" onclick="closeMobileMenu(); document.getElementById('reelSection').scrollIntoView({behavior:'smooth'});">Reel</span>
+    <span class="mobile-nav-link" onclick="closeMobileMenu(); document.querySelector('.section--dark:last-of-type').scrollIntoView({behavior:'smooth'});">Contact</span>
+  </div>
+
+  <!-- ========== CENTER PROMPT ========== -->
+  <div class="center-prompt" id="centerPrompt">
+    <div class="prompt-title"><span class="glitch" data-text="LOU CASTRO">LOU CASTRO</span></div>
+    <div class="prompt-sub">Filmmaker</div>
+    <div class="prompt-hint">Type a command below or press <span>[Enter]</span> to explore</div>
+  </div>
+
+  <!-- ========== INTERACTIVE TERMINAL ========== -->
+  <div class="terminal" id="terminal">
+    <div class="terminal-output" id="terminalOutput"></div>
+    <div class="terminal-input-wrap">
+      <span class="terminal-prefix"><span class="terminal-prefix-full">visitor@loucastro ~$</span><span class="terminal-prefix-short" style="display:none;">~$</span></span>
+      <input
+        class="terminal-input"
+        id="terminalInput"
+        type="text"
+        placeholder="try: help, reel, about, contact..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+    </div>
+  </div>
+
+  <!-- ========== CONSOLE PANEL (FILMOGRAPHY) ========== -->
+  <div class="console-panel" id="consolePanel">
+    <div class="console-header">
+      <div class="console-header-left">
+        <span>#</span>
+        <span>Filmography Terminal</span>
+      </div>
+      <button class="console-close" onclick="closeConsole()">&times;</button>
+    </div>
+    <div class="console-body">
+      <div class="console-subheader">
+        <div>
+          <div>imdb verified credits</div>
+          <div>actor / director / producer</div>
+        </div>
+        <div>
+          <div>archive regularly updated</div>
+          <div>new projects in development</div>
+        </div>
+      </div>
+      <div class="console-count">Credits <span>// 19 total</span></div>
+      <div class="console-divider"></div>
+      <div class="console-section-title">Department</div>
+      <div class="console-columns">
+        <ul class="console-list">
+          <li onclick="showCredits('actor', this)" class="active"><span>Actor</span><span class="num">10</span></li>
+          <li onclick="showCredits('editorial', this)"><span>Editorial Dept</span><span class="num">3</span></li>
+          <li onclick="showCredits('producer', this)"><span>Producer</span><span class="num">2</span></li>
+          <li onclick="showCredits('camera', this)"><span>Camera / Electric</span><span class="num">2</span></li>
+          <li onclick="showCredits('director', this)"><span>Director</span><span class="num">2</span></li>
+          <li onclick="showCredits('animation', this)"><span>Animation Dept</span><span class="num">1</span></li>
+        </ul>
+        <div class="console-detail">
+          <div class="console-detail-text" id="creditPlaceholder" style="display:none;">
+            Select a category to browse credits
+          </div>
+
+          <!-- ACTOR CREDITS -->
+          <div class="credit-list active" id="credits-actor">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">305 Fishkill Avenue <span class="credit-badge upcoming">Upcoming</span></div>
+                <div class="credit-role">Thug #3</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">TBD</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Children of Rage</div>
+                <div class="credit-role">Boy 3</div>
+                <div class="credit-meta">TV Mini Series &middot; 5 episodes</div>
+              </div>
+              <div class="credit-year">2021&ndash;2022</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">BOYS.</div>
+                <div class="credit-role">Lou</div>
+              </div>
+              <div class="credit-year">2022</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">True American Violence</div>
+                <div class="credit-role">Leo</div>
+              </div>
+              <div class="credit-year">2022</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Other Than Honorable</div>
+                <div class="credit-role">Fabian</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2021</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">All In</div>
+                <div class="credit-role">Lior</div>
+              </div>
+              <div class="credit-year">2020</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Lost in La La Land</div>
+                <div class="credit-role">Ronaldo</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2019</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">The Silence</div>
+                <div class="credit-role">Mark</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2019</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Red Woman</div>
+                <div class="credit-role">Ali</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2018</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Fantasy Inn</div>
+                <div class="credit-role">Theodore</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2014</div>
+            </div>
+          </div>
+
+          <!-- EDITORIAL DEPARTMENT CREDITS -->
+          <div class="credit-list" id="credits-editorial">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">The Electric State</div>
+                <div class="credit-role">Systems Administrator</div>
+              </div>
+              <div class="credit-year">2025</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Extraction II</div>
+                <div class="credit-role">Systems Administrator</div>
+              </div>
+              <div class="credit-year">2023</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">The Gray Man</div>
+                <div class="credit-role">Systems Administrator</div>
+              </div>
+              <div class="credit-year">2022</div>
+            </div>
+          </div>
+
+          <!-- PRODUCER CREDITS -->
+          <div class="credit-list" id="credits-producer">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">305 Fishkill Avenue <span class="credit-badge upcoming">Upcoming</span></div>
+                <div class="credit-role">Executive Producer</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">TBD</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">BestFriendAI</div>
+                <div class="credit-role">Co-Executive Producer</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2024</div>
+            </div>
+          </div>
+
+          <!-- CAMERA & ELECTRICAL CREDITS -->
+          <div class="credit-list" id="credits-camera">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">BestFriendAI</div>
+                <div class="credit-role">First Assistant Camera &middot; Grip</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2024</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Bent Spoons</div>
+                <div class="credit-role">Gaffer</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2023</div>
+            </div>
+          </div>
+
+          <!-- DIRECTOR CREDITS -->
+          <div class="credit-list" id="credits-director">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Bent Spoons</div>
+                <div class="credit-role">Director</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2023</div>
+            </div>
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">bestfriendai</div>
+                <div class="credit-role">Director</div>
+                <div class="credit-meta">Short</div>
+              </div>
+              <div class="credit-year">2025</div>
+            </div>
+          </div>
+
+          <!-- ANIMATION DEPARTMENT CREDITS -->
+          <div class="credit-list" id="credits-animation">
+            <div class="credit-item">
+              <div class="credit-info">
+                <div class="credit-title">Love, Death & Robots</div>
+                <div class="credit-role">Stage Manager: Motion Capture</div>
+                <div class="credit-meta">TV Series &middot; 1 episode</div>
+              </div>
+              <div class="credit-year">2025</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="console-footer">LC Archive 1.0</div>
+  </div>
+
+  <!-- ========== VALUES OVERLAY ========== -->
+  <div class="values-overlay" id="valuesOverlay" onclick="closeValues(event)">
+    <div class="values-content" onclick="event.stopPropagation()">
+      <div class="values-title">Philosophy</div>
+      <div class="values-grid">
+        <!--
+          =============================================
+          YOUR PHILOSOPHY / VALUES
+          Update these with your own creative philosophy.
+          =============================================
+        -->
+        <div class="value-item">
+          <h3>Vision</h3>
+          <p>Every film begins as something unseen. I chase the images that won't leave me alone - the ones that demand to exist on screen.</p>
+        </div>
+        <div class="value-item">
+          <h3>Truth</h3>
+          <p>The camera doesn't lie, but it can reveal. I'm drawn to stories that expose what people carry beneath the surface.</p>
+        </div>
+        <div class="value-item">
+          <h3>Tension</h3>
+          <p>Great cinema lives in the space between frames. I build worlds where silence speaks as loudly as dialogue.</p>
+        </div>
+        <div class="value-item">
+          <h3>Craft</h3>
+          <p>Every cut, every grade, every sound design choice is intentional. The details are the difference between watching and feeling.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCROLLABLE CONTENT ========== -->
+  <div class="content">
+    <div class="spacer"></div>
+
+    <!-- ABOUT -->
+    <div class="section section--gradient">
+      <div class="section-inner fade-in">
+        <div class="section-label">// About</div>
+        <h2 class="section-heading">I tell<br>stories.</h2>
+        <p class="section-text">
+          Filmmaker, director, and visual storyteller. I work at the intersection of raw human emotion and cinematic craft - building narratives that linger long after the credits roll.
+        </p>
+      </div>
+    </div>
+
+    <!-- REEL -->
+    <div class="section section--dark" id="reelSection">
+      <div class="section-inner fade-in">
+        <div class="section-label">// Selected Work</div>
+        <h2 class="section-heading">The Reel.</h2>
+        <p class="section-text">
+          A curated selection of recent and notable projects.
+        </p>
+        <div class="reel-grid">
+          <!--
+            =============================================
+            YOUR REEL ITEMS
+            Replace these placeholders with your project thumbnails.
+            Add an <img> tag inside each .reel-item:
+              <img src="your-thumbnail.jpg" alt="Project Name">
+            =============================================
+          -->
+          <div class="reel-item reel-placeholder">
+            <div class="reel-info"><h4>Project One</h4><p>Feature Film / 2025</p></div>
+            <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          </div>
+          <div class="reel-item reel-placeholder">
+            <div class="reel-info"><h4>Project Two</h4><p>Short Film / 2024</p></div>
+            <div style="width:100%;height:100%;background:#0e0e0e;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          </div>
+          <div class="reel-item reel-placeholder">
+            <div class="reel-info"><h4>Project Three</h4><p>Music Video / 2024</p></div>
+            <div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          </div>
+          <div class="reel-item reel-placeholder">
+            <div class="reel-info"><h4>Project Four</h4><p>Documentary / 2023</p></div>
+            <div style="width:100%;height:100%;background:#0e0e0e;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:2px;color:#333;">THUMBNAIL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT PROJECT -->
+    <div class="section section--subtle">
+      <div class="section-inner fade-in">
+        <div class="section-label">// Now</div>
+        <h2 class="section-heading">Something<br>is coming.</h2>
+        <p class="section-text">
+          My next project is currently in production. A new vision built from the ground up - equal parts visceral and intimate. More details soon.
+        </p>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="section section--dark">
+      <div class="section-inner fade-in">
+        <div class="section-label">// Contact</div>
+        <h2 class="section-heading">Let's<br>work.</h2>
+        <p class="section-text">
+          I'm always open to bold collaborations - whether it's a feature, a short, a music video, or something that doesn't have a name yet. If you have a story worth telling, let's talk.
+        </p>
+        <div style="margin-top: 32px;">
+          <a class="nav-link" href="mailto:loumcastro@gmail.com" style="font-size: 12px; border-bottom: 1px solid var(--accent); padding-bottom: 2px; color: var(--accent);">
+            Get In Touch &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-left">&copy; 2026 Lou Castro. All rights reserved.</div>
+        <div class="footer-links">
+          <a href="#">Vimeo</a>
+          <a href="#">Instagram</a>
+          <a href="#">IMDb</a>
+          <a href="mailto:loumcastro@gmail.com">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script>
+    /* =============================================
+       BOOT SEQUENCE
+       The site loads with a brief "terminal boot" animation,
+       then reveals the main experience.
+    ============================================= */
+    const bootLines = [
+      'INITIALIZING SYSTEM...',
+      'LOADING VISUAL CORTEX...',
+      'SCANNING FILM ARCHIVE... 147 ENTRIES FOUND',
+      'ESTABLISHING NEURAL LINK...',
+      'CALIBRATING DISPLAY...',
+      '',
+      'WELCOME.',
+      'YOU HAVE ARRIVED.',
+    ];
+
+    const bootText = document.getElementById('bootText');
+    const bootScreen = document.getElementById('bootScreen');
+
+    let bootIndex = 0;
+    function runBoot() {
+      if (bootIndex < bootLines.length) {
+        const line = document.createElement('div');
+        line.className = 'line';
+        line.style.animationDelay = '0s';
+
+        if (bootIndex === bootLines.length - 1) {
+          // Last line gets the blinking cursor
+          line.innerHTML = bootLines[bootIndex] + '<span class="boot-cursor"></span>';
+        } else {
+          line.textContent = bootLines[bootIndex] || '\u00A0';
+        }
+
+        bootText.appendChild(line);
+        bootIndex++;
+        setTimeout(runBoot, 250 + Math.random() * 200);
+      } else {
+        // Hold for a moment, then fade out
+        setTimeout(() => {
+          bootScreen.classList.add('fade-out');
+          setTimeout(initSite, 800);
+        }, 1200);
+      }
+    }
+
+    // Start boot after a brief pause
+    setTimeout(runBoot, 400);
+
+    /* =============================================
+       SITE INITIALIZATION
+       Called after boot sequence completes.
+    ============================================= */
+    function initSite() {
+      bootScreen.style.display = 'none';
+      document.getElementById('mainHeader').classList.add('visible');
+      document.getElementById('centerPrompt').classList.add('visible');
+      document.getElementById('terminal').classList.add('visible');
+
+      // Show corner tags
+      document.querySelectorAll('.corner-tag').forEach(el => el.classList.add('visible'));
+
+      // Focus the terminal input
+      document.getElementById('terminalInput').focus();
+    }
+
+    /* =============================================
+       DOM REFERENCES
+    ============================================= */
+    const heroContainer = document.getElementById('heroContainer');
+    const primaryVideo = document.querySelector('.hero-video-primary');
+    const altVideo = document.querySelector('.hero-video-alt');
+
+    /* =============================================
+       TERMINAL COMMAND SYSTEM
+       ==============================================
+       HOW TO CUSTOMIZE:
+       The 'commands' object below maps typed commands to responses.
+       To add a new command, add a new key to the object.
+       Each command returns an HTML string that gets displayed.
+    ============================================= */
+    const commands = {
+
+      help: () => `
+        <div class="term-title">Available Commands</div>
+        <ul class="term-list">
+          <li><span class="label">help</span><span class="meta">show this list</span></li>
+          <li><span class="label">about</span><span class="meta">who is lou castro</span></li>
+          <li><span class="label">reel</span><span class="meta">view selected work</span></li>
+          <li><span class="label">contact</span><span class="meta">get in touch</span></li>
+          <li><span class="label">philosophy</span><span class="meta">creative values</span></li>
+          <li><span class="label">now</span><span class="meta">what i'm working on</span></li>
+          <li><span class="label">links</span><span class="meta">social & profiles</span></li>
+          <li><span class="label">clear</span><span class="meta">clear terminal</span></li>
+        </ul>
+        <div class="term-hint">try typing something unexpected...</div>
+      `,
+
+      about: () => `
+        <div class="term-title">Lou Castro</div>
+        <div class="term-divider"></div>
+        <p class="term-text">
+          Filmmaker, director, and visual storyteller based in Los Angeles.
+          I work at the intersection of raw human emotion and cinematic craft -
+          building narratives that linger long after the credits roll.<br><br>
+          I chase the images that won't leave me alone.
+          The ones that demand to exist on screen.
+        </p>
+      `,
+
+      reel: () => {
+        // Scroll down to reel section
+        setTimeout(() => {
+          document.getElementById('reelSection').scrollIntoView({ behavior: 'smooth' });
+        }, 600);
+        return `
+          <div class="term-title">Selected Work</div>
+          <div class="term-divider"></div>
+          <ul class="term-list">
+            <li><span class="label">Project One</span><span class="meta">Feature Film / 2025</span></li>
+            <li><span class="label">Project Two</span><span class="meta">Short Film / 2024</span></li>
+            <li><span class="label">Project Three</span><span class="meta">Music Video / 2024</span></li>
+            <li><span class="label">Project Four</span><span class="meta">Documentary / 2023</span></li>
+          </ul>
+          <div class="term-hint">scrolling to reel...</div>
+        `;
+      },
+
+      contact: () => `
+        <div class="term-title">Contact</div>
+        <div class="term-divider"></div>
+        <p class="term-text">
+          Open to bold collaborations - features, shorts, music videos,
+          or something that doesn't have a name yet.<br><br>
+          <a href="mailto:loumcastro@gmail.com">loumcastro@gmail.com</a>
+        </p>
+      `,
+
+      philosophy: () => {
+        setTimeout(() => openValues(), 400);
+        return `
+          <div class="term-title">Philosophy</div>
+          <div class="term-divider"></div>
+          <p class="term-text">Opening philosophy panel...</p>
+        `;
+      },
+
+      now: () => `
+        <div class="term-title">Current Status</div>
+        <div class="term-divider"></div>
+        <p class="term-text">
+          Something is in production. A new vision built from the ground up -
+          equal parts visceral and intimate.<br><br>
+          More details soon. Stay curious.
+        </p>
+      `,
+
+      links: () => `
+        <div class="term-title">Links</div>
+        <div class="term-divider"></div>
+        <ul class="term-list">
+          <li><span class="label"><a href="#">Vimeo</a></span><span class="meta">reels & shorts</span></li>
+          <li><span class="label"><a href="#">Instagram</a></span><span class="meta">behind the scenes</span></li>
+          <li><span class="label"><a href="#">IMDb</a></span><span class="meta">full credits</span></li>
+        </ul>
+      `,
+
+      clear: () => {
+        document.getElementById('terminalOutput').innerHTML = '';
+        return null; // No response to display
+      },
+
+      filmography: () => {
+        setTimeout(() => openConsole(), 400);
+        return `
+          <div class="term-title">Filmography</div>
+          <div class="term-divider"></div>
+          <p class="term-text">Opening filmography panel...</p>
+        `;
+      },
+
+      /* =============================================
+         HIDDEN COMMANDS / EASTER EGGS
+         These aren't listed in help - visitors discover them.
+         Add your own by following the same pattern.
+      ============================================= */
+
+      hello: () => `
+        <p class="term-text">Hello. Welcome to the archive.<br>You found one of the quiet corners.</p>
+      `,
+
+      secret: () => `
+        <p class="term-text">There are no secrets here. Only things you haven't looked for yet.</p>
+      `,
+
+      truth: () => `
+        <p class="term-text">
+          "The camera doesn't lie, but it can reveal."<br>
+          You're paying attention. Good.
+        </p>
+      `,
+
+      vision: () => `
+        <p class="term-text">
+          Every frame is a decision. Every cut is a confession.<br>
+          What do you see?
+        </p>
+      `,
+
+      why: () => `
+        <p class="term-text">
+          Because the stories won't tell themselves.<br>
+          Because silence is just another kind of sound.<br>
+          Because the images won't leave me alone.
+        </p>
+      `,
+
+      fear: () => `
+        <p class="term-text">Fear is the first frame of every honest film.</p>
+      `,
+
+      ls: () => `
+        <p class="term-text" style="color: var(--accent);">
+          about.txt&nbsp;&nbsp;&nbsp;reel/&nbsp;&nbsp;&nbsp;philosophy.md&nbsp;&nbsp;&nbsp;contact.txt&nbsp;&nbsp;&nbsp;.secrets/
+        </p>
+        <div class="term-hint">you found the filesystem. curious.</div>
+      `,
+
+      'cat .secrets': () => `
+        <p class="term-text">permission denied: some things are only revealed in the dark.</p>
+      `,
+
+      whoami: () => `
+        <p class="term-text">You are a visitor. But you could be a collaborator.</p>
+      `,
+
+      sudo: () => `
+        <p class="term-text" style="color: var(--red);">nice try.</p>
+      `,
+    };
+
+    // Handle terminal input
+    const terminalInput = document.getElementById('terminalInput');
+    const terminalOutput = document.getElementById('terminalOutput');
+
+    terminalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const raw = terminalInput.value.trim();
+        const cmd = raw.toLowerCase();
+        terminalInput.value = '';
+
+        if (!cmd) {
+          // Empty enter = scroll to content
+          document.querySelector('.content .section').scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+
+        // Check for exact match or partial match
+        let handler = commands[cmd];
+
+        // Partial matching for unknown commands
+        if (!handler) {
+          // Check if it starts with a known command
+          for (const key of Object.keys(commands)) {
+            if (cmd.startsWith(key) || key.startsWith(cmd)) {
+              handler = commands[key];
+              break;
+            }
+          }
+        }
+
+        if (handler) {
+          const result = handler();
+          if (result) {
+            displayResponse(cmd, result);
+          }
+        } else {
+          // Unknown command - give a mysterious response
+          const unknowns = [
+            "Command not recognized. But I appreciate the curiosity.",
+            "Unknown signal. Type <span style='color:var(--accent)'>help</span> to see what's available.",
+            "That's not in the archive. Yet.",
+            "Interesting input. Try <span style='color:var(--accent)'>help</span> for available commands.",
+            "The system doesn't know that one. But you might be onto something.",
+          ];
+          const response = unknowns[Math.floor(Math.random() * unknowns.length)];
+          displayResponse(cmd, `<p class="term-text">${response}</p>`);
+        }
+      }
+    });
+
+    function displayResponse(cmd, html) {
+      const response = document.createElement('div');
+      response.className = 'terminal-response type-in';
+      response.innerHTML = `
+        <div class="term-cmd"><span>$</span> ${cmd}</div>
+        ${html}
+      `;
+      terminalOutput.appendChild(response);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+
+      // Hide center prompt after first command
+      const prompt = document.getElementById('centerPrompt');
+      if (prompt && !prompt.classList.contains('hidden')) {
+        prompt.classList.add('hidden');
+        prompt.classList.remove('visible');
+      }
+    }
+
+    /* =============================================
+       BLUR CONTROL
+    ============================================= */
+    function blurHero() { heroContainer.classList.add('blurred'); }
+    function unblurHero() { heroContainer.classList.remove('blurred'); }
+
+    /* =============================================
+       VIDEO CROSSFADE
+    ============================================= */
+    function showAltVideo() {
+      if (altVideo) {
+        altVideo.play().catch(() => {});
+        altVideo.classList.add('active');
+        if (primaryVideo) primaryVideo.classList.add('dimmed');
+      }
+    }
+
+    function showPrimaryVideo() {
+      if (altVideo) {
+        altVideo.classList.remove('active');
+        if (primaryVideo) primaryVideo.classList.remove('dimmed');
+        setTimeout(() => { if (!altVideo.classList.contains('active')) altVideo.pause(); }, 1400);
+      }
+    }
+
+    /* =============================================
+       CONSOLE PANEL (FILMOGRAPHY)
+    ============================================= */
+    function openConsole() {
+      closeValues();
+      document.getElementById('consolePanel').classList.add('active');
+      blurHero();
+    }
+
+    function closeConsole() {
+      document.getElementById('consolePanel').classList.remove('active');
+      if (!document.getElementById('valuesOverlay').classList.contains('active')) {
+        unblurHero();
+      }
+    }
+
+    function showCredits(category, el) {
+      // Hide all credit lists
+      document.querySelectorAll('.credit-list').forEach(list => list.classList.remove('active'));
+      // Remove active from all nav items
+      document.querySelectorAll('.console-list li').forEach(li => li.classList.remove('active'));
+      // Show selected
+      const target = document.getElementById('credits-' + category);
+      if (target) target.classList.add('active');
+      if (el) el.classList.add('active');
+      // Hide placeholder
+      const ph = document.getElementById('creditPlaceholder');
+      if (ph) ph.style.display = 'none';
+    }
+
+    /* =============================================
+       VALUES OVERLAY (PHILOSOPHY)
+    ============================================= */
+    function openValues() {
+      closeConsole();
+      document.getElementById('valuesOverlay').classList.add('active');
+      blurHero();
+      showAltVideo();
+    }
+
+    function closeValues(e) {
+      document.getElementById('valuesOverlay').classList.remove('active');
+      showPrimaryVideo();
+      if (!document.getElementById('consolePanel').classList.contains('active')) {
+        unblurHero();
+      }
+    }
+
+    /* =============================================
+       CLOSE ALL / HOME
+    ============================================= */
+    function closeAll() {
+      closeConsole();
+      closeValues();
+      unblurHero();
+      showPrimaryVideo();
+    }
+
+    function toggleHome() {
+      closeAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('centerPrompt').classList.remove('hidden');
+      document.getElementById('centerPrompt').classList.add('visible');
+      terminalInput.focus();
+    }
+
+    /* =============================================
+       AUDIO TOGGLE
+    ============================================= */
+    let audioEnabled = false;
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const waves = document.querySelector('.audio-waves');
+      if (waves) waves.style.opacity = audioEnabled ? '1' : '0.3';
+      if (primaryVideo) primaryVideo.muted = !audioEnabled;
+      if (altVideo) altVideo.muted = !audioEnabled;
+    }
+
+    /* =============================================
+       SCROLL ANIMATIONS
+    ============================================= */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    /* =============================================
+       KEYBOARD SHORTCUTS
+    ============================================= */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAll();
+      // Focus terminal on any keypress if not already focused on an input
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        terminalInput.focus();
+      }
+    });
+
+    /* =============================================
+       SCROLL-BASED EFFECTS
+    ============================================= */
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+
+      // Darken hero on scroll
+      const overlay = document.querySelector('.hero-overlay');
+      if (overlay) {
+        const opacity = Math.min(0.5 + scrollY / 800, 0.92);
+        overlay.style.background = `rgba(0, 0, 0, ${opacity})`;
+      }
+
+      // Hide center prompt on scroll
+      const prompt = document.getElementById('centerPrompt');
+      if (scrollY > 200 && prompt) {
+        prompt.classList.add('hidden');
+        prompt.classList.remove('visible');
+      }
+
+      // Hide terminal on deep scroll, show on top
+      const terminal = document.getElementById('terminal');
+      if (scrollY > window.innerHeight * 0.8) {
+        terminal.style.opacity = '0';
+        terminal.style.pointerEvents = 'none';
+      } else {
+        terminal.style.opacity = '1';
+        terminal.style.pointerEvents = 'auto';
+      }
+
+      // Fade corner tags on scroll
+      document.querySelectorAll('.corner-tag').forEach(el => {
+        if (scrollY > 300) {
+          el.classList.remove('visible');
+        } else {
+          el.classList.add('visible');
+        }
+      });
+    });
+
+    /* =============================================
+       CLICK ANYWHERE TO FOCUS TERMINAL
+       (when at top of page)
+    ============================================= */
+    document.addEventListener('click', (e) => {
+      if (window.scrollY < 200 &&
+          e.target.tagName !== 'A' &&
+          e.target.tagName !== 'BUTTON' &&
+          !e.target.closest('.console-panel') &&
+          !e.target.closest('.values-overlay') &&
+          !e.target.closest('.nav-link') &&
+          !e.target.closest('.nav-bracket') &&
+          !e.target.closest('.mobile-menu') &&
+          !e.target.closest('.hamburger')) {
+        terminalInput.focus();
+      }
+    });
+
+    /* =============================================
+       MOBILE MENU
+    ============================================= */
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const hamburger = document.getElementById('hamburger');
+      const isActive = menu.classList.contains('active');
+      if (isActive) {
+        closeMobileMenu();
+      } else {
+        menu.classList.add('active');
+        hamburger.classList.add('active');
+      }
+    }
+
+    function closeMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      const hamburger = document.getElementById('hamburger');
+      menu.classList.remove('active');
+      hamburger.classList.remove('active');
+    }
+
+    /* =============================================
+       MOBILE TERMINAL PREFIX SHORTENING
+    ============================================= */
+    function updateTerminalPrefix() {
+      const full = document.querySelector('.terminal-prefix-full');
+      const short = document.querySelector('.terminal-prefix-short');
+      if (full && short) {
+        if (window.innerWidth <= 420) {
+          full.style.display = 'none';
+          short.style.display = 'inline';
+        } else {
+          full.style.display = 'inline';
+          short.style.display = 'none';
+        }
+      }
+    }
+
+    updateTerminalPrefix();
+    window.addEventListener('resize', updateTerminalPrefix);
+
+    /* =============================================
+       CLOSE MOBILE MENU ON ESCAPE
+    ============================================= */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMobileMenu();
+    });
+
+    /* =============================================
+       PREVENT iOS VIEWPORT BOUNCE / SCROLL ISSUES
+    ============================================= */
+    // Fix 100vh on mobile browsers (address bar issue)
+    function setVH() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    setVH();
+    window.addEventListener('resize', setVH);
+  </script>
+
+</body>
+</html>
